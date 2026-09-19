@@ -59,7 +59,7 @@ async def schedule_video_deletion(video_message, notification_message, delay=10)
         logging.error(f"Не удалось удалить сообщение с видео: {e}")
 
 
-# --- КОМАНДЫ И КНОПКИ МЕНЮ (ПЕРВЫЙ ПРИОРИТЕТ) ---
+# --- КОМАНДЫ И КНОПКИ МЕНЮ ---
 
 @dp.message(Command("start"))
 async def cmd_start(message: types.Message):
@@ -76,7 +76,6 @@ async def cmd_start(message: types.Message):
     else:
         await message.answer(text, reply_markup=main_kb())
 
-# Команда /help и кнопка помощи
 @dp.message(Command("help"))
 @dp.message(F.text == "ℹ️ Помощь (/help)")
 async def cmd_help(message: types.Message):
@@ -97,7 +96,6 @@ async def back_to_main(message: types.Message):
     else:
         await message.answer("Главное меню:", reply_markup=main_kb())
 
-# Команда /random с отправкой видео, уведомлением и автоудалением через 10 секунд
 @dp.message(Command("random"))
 @dp.message(F.text == "🎲 Рандомное видео")
 async def send_random(message: types.Message):
@@ -126,7 +124,6 @@ async def send_random(message: types.Message):
     vid_id, title, category, file_id, file_url = video
     
     settings["shown_videos"].add(vid_id)
-    
     caption = f"🎬 **{title}**\n📂 Категория: {category}\n🆔 ID: `{vid_id}`"
     
     try:
@@ -141,7 +138,6 @@ async def send_random(message: types.Message):
     except Exception as e:
         await message.answer(f"Ошибка при отправке видео: {e}")
 
-# Настройки (/setting)
 @dp.message(Command("setting"))
 @dp.message(F.text == "⚙️ Настройки")
 async def cmd_settings(message: types.Message):
@@ -150,7 +146,6 @@ async def cmd_settings(message: types.Message):
         user_settings[user_id] = {"repeat": True, "shown_videos": set()}
     
     repeat_status = "Вкл ✅" if user_settings[user_id]["repeat"] else "Выкл ❌"
-    
     kb = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text=f"Повтор видео: {repeat_status}", callback_data="toggle_repeat")]
     ])
@@ -166,14 +161,12 @@ async def toggle_repeat_callback(callback: types.CallbackQuery):
     user_settings[user_id]["shown_videos"].clear()
     
     repeat_status = "Вкл ✅" if user_settings[user_id]["repeat"] else "Выкл ❌"
-    
     kb = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text=f"Повтор видео: {repeat_status}", callback_data="toggle_repeat")]
     ])
     await callback.message.edit_reply_markup(reply_markup=kb)
     await callback.answer("Настройки обновлены!")
 
-# Обратная связь / Report (Связь с администрацией)
 @dp.message(Command("report"))
 @dp.message(F.text == "🛠 Report")
 async def cmd_report_start(message: types.Message, state: FSMContext):
@@ -206,7 +199,6 @@ async def process_report_text(message: types.Message, state: FSMContext):
     await message.answer("✅ Ваше сообщение успешно отправлено администрации! Спасибо за обратную связь.")
     await state.clear()
 
-# Рассылка администратора через /all
 @dp.message(Command("all"))
 @dp.message(F.text == "📢 Сделать рассылку (/all)")
 async def admin_broadcast_start(message: types.Message, state: FSMContext):
@@ -222,7 +214,6 @@ async def admin_execute_broadcast(message: types.Message, state: FSMContext):
     
     success_count = 0
     fail_count = 0
-    
     for uid in user_settings.keys():
         try:
             await message.send_copy(chat_id=uid)
@@ -234,7 +225,6 @@ async def admin_execute_broadcast(message: types.Message, state: FSMContext):
     await message.answer(f"📢 **Рассылка завершена!**\n✅ Успешно доставлено: {success_count}\n❌ Ошибок отправки: {fail_count}", parse_mode="Markdown")
     await state.clear()
 
-# Категории
 @dp.message(F.text == "📂 Категории")
 async def show_categories(message: types.Message):
     videos = get_all_videos()
@@ -309,9 +299,6 @@ async def admin_get_video_file(message: types.Message, state: FSMContext):
     await message.answer("✅ Видеотека успешно пополнена!", reply_markup=admin_kb())
     await state.clear()
 
-
-# --- ОБРАБОТКА ОБЫЧНОГО ТЕКСТА (В САМОМ КОНЦЕ) ---
-
 @dp.message(F.text & ~F.text.startswith("/"))
 async def catch_other_text(message: types.Message):
     user_id = message.from_user.id
@@ -328,13 +315,40 @@ async def catch_other_text(message: types.Message):
         await message.answer(text, reply_markup=main_kb())
 
 
-# --- ВЕБ-СЕРВЕР И ОТДАЧА HTML САЙТА ---
+# --- ВЕБ-СЕРВЕР И ДИНАМИЧЕСКАЯ ОТДАЧА САЙТА ---
 
 async def handle(request):
     try:
-        return web.FileResponse('./index.html')
-    except Exception:
-        return web.Response(text="Bot is running! (index.html not found)")
+        with open('./index.html', 'r', encoding='utf-8') as f:
+            html_content = f.read()
+            
+        videos = get_all_videos()
+        videos_html = ""
+        
+        if not videos:
+            videos_html = """
+            <div style="text-align: center; color: #8a8a8a; padding: 25px;">
+                <i class="fa-solid fa-folder-open" style="font-size: 2rem; color: #00f2fe; margin-bottom: 10px;"></i>
+                <p>База данных пока пуста. Загружайте видео через админ-панель в Telegram!</p>
+            </div>
+            """
+        else:
+            for v in videos:
+                vid_id, title, category, file_id, file_url = v
+                videos_html += f"""
+                <div class="video-item" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); transition: background 0.2s;">
+                    <div class="video-info">
+                        <h4 style="font-size: 0.95rem; margin-bottom: 3px; color: #fff;">{title}</h4>
+                        <span style="font-size: 0.75rem; color: #8a8a8a; background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 6px;">Категория: {category} | ID: {vid_id}</span>
+                    </div>
+                    <a href="https://t.me/randomvideohub_bot" target="_blank" class="watch-link" style="background: linear-gradient(135deg, #00f2fe, #4facfe); color: #000; padding: 8px 14px; border-radius: 8px; text-decoration: none; font-size: 0.85rem; font-weight: 700;">Смотреть в боте</a>
+                </div>
+                """
+                
+        html_content = html_content.replace('<!-- VIDEO_LIST_PLACEHOLDER -->', videos_html)
+        return web.Response(text=html_content, content_type='text/html')
+    except Exception as e:
+        return web.Response(text=f"Error loading site: {e}", content_type='text/html')
 
 async def web_server():
     app = web.Application()
