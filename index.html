@@ -3,255 +3,160 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VideoHub Portal & Bot</title>
-    <!-- Подключаем шрифт и иконки -->
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <title>Видеобаза | Каталог роликов</title>
+    <!-- Подключаем шрифты и иконки FontAwesome -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
         * {
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
-            font-family: 'Outfit', sans-serif;
+            font-family: 'Inter', sans-serif;
         }
 
         body {
-            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
-            color: #fff;
+            background-color: #0f111a;
+            color: #ffffff;
             min-height: 100vh;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
-            overflow-x: hidden;
             padding: 20px;
         }
 
-        /* Фоновые неоновые круги для атмосферы */
-        .bg-glow {
-            position: absolute;
-            width: 400px;
-            height: 400px;
-            background: rgba(138, 43, 226, 0.3);
-            filter: blur(120px);
-            border-radius: 50%;
-            z-index: -1;
-            top: 10%;
-            left: 15%;
-        }
-
-        .bg-glow-2 {
-            position: absolute;
-            width: 400px;
-            height: 400px;
-            background: rgba(0, 242, 254, 0.2);
-            filter: blur(120px);
-            border-radius: 50%;
-            z-index: -1;
-            bottom: 10%;
-            right: 15%;
-        }
-
-        /* Glassmorphism контейнер */
         .container {
             width: 100%;
-            max-width: 900px;
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 24px;
-            padding: 40px;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
-            animation: fadeIn 1s ease-in-out;
+            max-width: 650px;
+            background: rgba(26, 29, 41, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            margin-top: 20px;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Шапка */
         header {
             text-align: center;
-            margin-bottom: 35px;
+            margin-bottom: 20px;
         }
 
         header h1 {
-            font-size: 2.5rem;
+            font-size: 1.6rem;
             font-weight: 700;
-            background: linear-gradient(90deg, #00f2fe, #4facfe);
+            background: linear-gradient(135deg, #00f2fe, #4facfe);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
 
         header p {
-            color: #b3b3b3;
-            font-size: 1rem;
-        }
-
-        /* Секции / Карточки */
-        .section-title {
-            font-size: 1.2rem;
-            margin-bottom: 15px;
-            color: #00f2fe;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .grid-buttons {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-            gap: 15px;
-            margin-bottom: 30px;
-        }
-
-        /* Кнопки в стиле Glass */
-        .glass-btn {
-            background: rgba(255, 255, 255, 0.07);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            padding: 15px 20px;
-            border-radius: 14px;
-            color: #fff;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-
-        .glass-btn i {
-            font-size: 1.3rem;
-            color: #00f2fe;
-        }
-
-        .glass-btn:hover {
-            background: rgba(255, 255, 255, 0.15);
-            border-color: #00f2fe;
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(0, 242, 254, 0.3);
-        }
-
-        /* Блок базы данных */
-        .database-box {
-            background: rgba(0, 0, 0, 0.25);
-            border-radius: 16px;
-            padding: 15px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            max-height: 280px;
-            overflow-y: auto;
-            margin-bottom: 30px;
-        }
-
-        .watch-link:hover {
-            opacity: 0.85;
-        }
-
-        /* Футер */
-        footer {
-            text-align: center;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            padding-top: 20px;
-            color: #888;
+            color: #8a8a8a;
             font-size: 0.9rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
         }
 
-        .status-badge {
-            display: inline-flex;
+        .bot-banner {
+            background: linear-gradient(135deg, rgba(0, 242, 254, 0.1), rgba(79, 172, 254, 0.1));
+            border: 1px solid rgba(0, 242, 254, 0.3);
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .bot-banner a {
+            display: inline-block;
+            margin-top: 10px;
+            background: linear-gradient(135deg, #00f2fe, #4facfe);
+            color: #000;
+            padding: 8px 18px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 0.9rem;
+            transition: 0.2s;
+        }
+
+        .bot-banner a:hover {
+            opacity: 0.9;
+            transform: scale(1.02);
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            margin-bottom: 12px;
+            display: flex;
             align-items: center;
             gap: 8px;
-            background: rgba(0, 255, 128, 0.1);
-            color: #00ff80;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            border: 1px solid rgba(0, 255, 128, 0.2);
         }
 
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            background: #00ff80;
-            border-radius: 50%;
-            box-shadow: 0 0 8px #00ff80;
-            animation: pulse 1.5s infinite;
+        /* Список видео */
+        .video-list-container {
+            max-height: 400px;
+            overflow-y: auto;
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.05);
         }
 
-        @keyframes pulse {
-            0% { transform: scale(0.95); opacity: 0.8; }
-            50% { transform: scale(1.2); opacity: 1; }
-            100% { transform: scale(0.95); opacity: 0.8; }
-        }
-
+        /* Кастомный скроллбар */
         ::-webkit-scrollbar {
             width: 6px;
         }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
         ::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.15);
             border-radius: 10px;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 25px;
+            color: #555;
+            font-size: 0.8rem;
         }
     </style>
 </head>
 <body>
 
-    <div class="bg-glow"></div>
-    <div class="bg-glow-2"></div>
-
     <div class="container">
-        <!-- Шапка -->
         <header>
-            <h1>VideoHub Portal</h1>
-            <p>Умная экосистема видеоматериалов и Telegram-бот управления</p>
+            <h1><i class="fa-solid fa-play-circle"></i> Видеобекенд Каталог</h1>
+            <p>Вся база роликов, доступная в нашем Telegram боте</p>
         </header>
 
-        <!-- Навигация -->
-        <div class="section-title"><i class="fa-solid fa-compass"></i> Навигация и быстрый доступ</div>
-        <div class="grid-buttons">
-            <a href="https://t.me/randomvideohub_bot" target="_blank" class="glass-btn">
-                <i class="fa-brands fa-telegram"></i>
-                <div>
-                    <div>Открыть бота</div>
-                    <small style="color:#aaa; font-weight:300;">Запустить в Telegram</small>
-                </div>
-            </a>
-            <a href="https://t.me/randomvideohub_bot" target="_blank" class="glass-btn">
-                <i class="fa-solid fa-headset"></i>
-                <div>
-                    <div>Связаться с админом</div>
-                    <small style="color:#aaa; font-weight:300;">Поддержка / Репорты</small>
-                </div>
-            </a>
-            <a href="https://t.me/randomvideohub_bot" target="_blank" class="glass-btn">
-                <i class="fa-solid fa-random"></i>
-                <div>
-                    <div>Рандомный ролик</div>
-                    <small style="color:#aaa; font-weight:300;">Получить в один клик</small>
-                </div>
-            </a>
+        <!-- Рекламный блок для перехода в бота -->
+        <div class="bot-banner">
+            <p style="font-size: 0.9rem; color: #ccc;">Хотите смотреть видео в Telegram, искать по названию или скачивать?</p>
+            <a href="https://t.me/randomvideohub_bot" target="_blank"><i class="fa-brands fa-telegram"></i> Открыть Telegram-бот</a>
         </div>
 
-        <!-- База данных видео (Динамический вывод) -->
-        <div class="section-title"><i class="fa-solid fa-database"></i> База данных видеоматериалов</div>
-        <div class="database-box">
-            <!-- VIDEO_LIST_PLACEHOLDER -->
-        </div>
-
-        <!-- Футер -->
-        <footer>
-            <div class="status-badge">
-                <div class="status-dot"></div>
-                Система активна (Online)
+        <!-- БЛОК ТОП-5 ПОПУЛЯРНЫХ ВИДЕО -->
+        <div style="margin-bottom: 25px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 12px; padding: 15px;">
+            <h3 class="section-title" style="color: #ff5e62;">
+                <i class="fa-solid fa-fire"></i> Топ-5 популярных видео
+            </h3>
+            <div id="top-videos-list">
+                <!-- TOP_VIDEOS_PLACEHOLDER -->
             </div>
-            <p>&copy; 2026 VideoHub System. Все права защищены.</p>
+        </div>
+
+        <!-- ОБЩИЙ СПИСОК ВИДЕО -->
+        <div>
+            <h3 class="section-title" style="color: #00f2fe;">
+                <i class="fa-solid fa-list"></i> Все видео в базе
+            </h3>
+            <div class="video-list-container">
+                <!-- VIDEO_LIST_PLACEHOLDER -->
+            </div>
+        </div>
+
+        <footer>
+            &copy; 2026 Видеобекенд Бот. Все права защищены.
         </footer>
     </div>
 
