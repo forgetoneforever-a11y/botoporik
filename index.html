@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Видеобаза | Каталог роликов</title>
-    <!-- Подключаем шрифты и иконки FontAwesome -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -17,34 +16,33 @@
         }
 
         body {
-            background-color: #0f111a;
+            background: #0b0d14;
             color: #ffffff;
             min-height: 100vh;
             display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 20px;
+            justify-content: center;
+            padding: 40px 20px;
         }
 
         .container {
             width: 100%;
-            max-width: 650px;
-            background: rgba(26, 29, 41, 0.75);
-            backdrop-filter: blur(12px);
+            max-width: 900px; /* Сделали шире */
+            background: rgba(18, 21, 31, 0.85);
+            backdrop-filter: blur(16px);
             border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 20px;
-            padding: 25px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-            margin-top: 20px;
+            border-radius: 24px;
+            padding: 35px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+            height: fit-content;
         }
 
         header {
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
         }
 
         header h1 {
-            font-size: 1.6rem;
+            font-size: 2rem;
             font-weight: 700;
             background: linear-gradient(135deg, #00f2fe, #4facfe);
             -webkit-background-clip: text;
@@ -54,54 +52,92 @@
 
         header p {
             color: #8a8a8a;
-            font-size: 0.9rem;
+            font-size: 1rem;
         }
 
         .bot-banner {
-            background: linear-gradient(135deg, rgba(0, 242, 254, 0.1), rgba(79, 172, 254, 0.1));
-            border: 1px solid rgba(0, 242, 254, 0.3);
-            border-radius: 12px;
-            padding: 15px;
+            background: linear-gradient(135deg, rgba(0, 242, 254, 0.08), rgba(79, 172, 254, 0.08));
+            border: 1px solid rgba(0, 242, 254, 0.25);
+            border-radius: 16px;
+            padding: 20px;
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 30px;
         }
 
         .bot-banner a {
             display: inline-block;
-            margin-top: 10px;
+            margin-top: 12px;
             background: linear-gradient(135deg, #00f2fe, #4facfe);
             color: #000;
-            padding: 8px 18px;
-            border-radius: 8px;
+            padding: 10px 22px;
+            border-radius: 10px;
             text-decoration: none;
             font-weight: 700;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             transition: 0.2s;
+            box-shadow: 0 4px 15px rgba(0, 242, 254, 0.3);
         }
 
         .bot-banner a:hover {
-            opacity: 0.9;
-            transform: scale(1.02);
+            opacity: 0.95;
+            transform: translateY(-2px);
         }
 
         .section-title {
-            font-size: 1.1rem;
-            margin-bottom: 12px;
+            font-size: 1.2rem;
+            margin-bottom: 15px;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
+            font-weight: 600;
         }
 
-        /* Список видео */
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 25px;
+        }
+
+        @media (min-width: 768px) {
+            .content-grid {
+                grid-template-columns: 1fr 1fr; /* На ПК делим на 2 колонки: Топ и Общий список */
+            }
+        }
+
+        .card-box {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 16px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
         .video-list-container {
-            max-height: 400px;
+            max-height: 420px;
             overflow-y: auto;
-            border-radius: 10px;
-            background: rgba(0, 0, 0, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.25);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            padding: 5px;
         }
 
-        /* Кастомный скроллбар */
+        /* Стили элементов списка */
+        .video-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            transition: background 0.2s;
+            border-radius: 8px;
+        }
+
+        .video-item:hover {
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        /* Скроллбар */
         ::-webkit-scrollbar {
             width: 6px;
         }
@@ -115,9 +151,11 @@
 
         footer {
             text-align: center;
-            margin-top: 25px;
+            margin-top: 35px;
             color: #555;
-            font-size: 0.8rem;
+            font-size: 0.85rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding-top: 20px;
         }
     </style>
 </head>
@@ -126,33 +164,38 @@
     <div class="container">
         <header>
             <h1><i class="fa-solid fa-play-circle"></i> Видеобекенд Каталог</h1>
-            <p>Вся база роликов, доступная в нашем Telegram боте</p>
+            <p>Вся база роликов и популярный контент из нашего Telegram-бота</p>
         </header>
 
-        <!-- Рекламный блок для перехода в бота -->
+        <!-- Баннер перехода в бота -->
         <div class="bot-banner">
-            <p style="font-size: 0.9rem; color: #ccc;">Хотите смотреть видео в Telegram, искать по названию или скачивать?</p>
+            <p style="font-size: 0.95rem; color: #ddd;">Хотите смотреть видео в Telegram, искать по названию или скачивать?</p>
             <a href="https://t.me/randomvideohub_bot" target="_blank"><i class="fa-brands fa-telegram"></i> Открыть Telegram-бот</a>
         </div>
 
-        <!-- БЛОК ТОП-5 ПОПУЛЯРНЫХ ВИДЕО -->
-        <div style="margin-bottom: 25px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 12px; padding: 15px;">
-            <h3 class="section-title" style="color: #ff5e62;">
-                <i class="fa-solid fa-fire"></i> Топ-5 популярных видео
-            </h3>
-            <div id="top-videos-list">
-                <!-- TOP_VIDEOS_PLACEHOLDER -->
+        <!-- Двухколоночная сетка для Топа и Общего списка -->
+        <div class="content-grid">
+            
+            <!-- БЛОК ТОП-5 ПОПУЛЯРНЫХ ВИДЕО -->
+            <div class="card-box">
+                <h3 class="section-title" style="color: #ff5e62;">
+                    <i class="fa-solid fa-fire"></i> Топ популярных
+                </h3>
+                <div class="video-list-container" style="flex-grow: 1;">
+                    <!-- TOP_VIDEOS_PLACEHOLDER -->
+                </div>
             </div>
-        </div>
 
-        <!-- ОБЩИЙ СПИСОК ВИДЕО -->
-        <div>
-            <h3 class="section-title" style="color: #00f2fe;">
-                <i class="fa-solid fa-list"></i> Все видео в базе
-            </h3>
-            <div class="video-list-container">
-                <!-- VIDEO_LIST_PLACEHOLDER -->
+            <!-- ОБЩИЙ СПИСОК ВИДЕО -->
+            <div class="card-box">
+                <h3 class="section-title" style="color: #00f2fe;">
+                    <i class="fa-solid fa-list"></i> Все видео в базе
+                </h3>
+                <div class="video-list-container" style="flex-grow: 1;">
+                    <!-- VIDEO_LIST_PLACEHOLDER -->
+                </div>
             </div>
+
         </div>
 
         <footer>
