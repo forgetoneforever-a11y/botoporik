@@ -23,10 +23,10 @@ class AdminStates(StatesGroup):
     waiting_for_video = State()
 
 def main_kb():
+    # Кнопка "ℹ️ О боте" полностью удалена
     return ReplyKeyboardMarkup(
         keyboard=[
-            [KeyboardButton(text="🎲 Рандомное видео"), KeyboardButton(text="📂 Категории")],
-            [KeyboardButton(text="ℹ️ О боте")]
+            [KeyboardButton(text="🎲 Рандомное видео"), KeyboardButton(text="📂 Категории")]
         ],
         resize_keyboard=True
     )
@@ -63,7 +63,8 @@ async def send_random(message: types.Message):
     if file_id:
         await message.answer_video(video=file_id, caption=caption, parse_mode="Markdown")
     elif file_url:
-        await message.answer_video(video=file_url, caption=caption, parse_mode="Markdown")
+        full_url = f"https://botoporik.onrender.com{file_url}"
+        await message.answer_video(video=full_url, caption=caption, parse_mode="Markdown")
 
 @dp.message(F.text == "📂 Категории")
 async def show_categories(message: types.Message):
@@ -85,6 +86,11 @@ async def category_videos(callback: types.CallbackQuery):
     cat_name = callback.data.split("_", 1)[1]
     videos = [v for v in get_all_videos() if v[2] == cat_name]
     
+    if not videos:
+        await callback.message.answer(f"В категории **{cat_name}** пока нет видео.", parse_mode="Markdown")
+        await callback.answer()
+        return
+
     text = f"📹 Видео в категории **{cat_name}**:\n\n"
     for v in videos:
         text += f"• ID: `{v[0]}` | **{v[1]}**\n"
@@ -106,7 +112,7 @@ async def admin_database(message: types.Message):
         await message.answer("База данных пуста.")
         return
     for v in videos[:10]:
-        await message.answer(f"ID: `{v[0]}`\nНазвание: **{v[1]}**\nКатегория: {v[2]}", parse_mode="Markdown")
+        await message.answer(f"ID: `{v[0]}`\nНазвание: **{v[1]}**\nКатегория: {v[2]}", parse_mode="Markdown", parse_mode_fallback=True)
 
 @dp.message(F.text == "📤 Загрузить видео")
 async def admin_upload_start(message: types.Message, state: FSMContext):
@@ -116,13 +122,13 @@ async def admin_upload_start(message: types.Message, state: FSMContext):
 
 @dp.message(AdminStates.waiting_for_title)
 async def admin_get_title(message: types.Message, state: FSMContext):
-    await state.update_date(title=message.text)
+    await state.update_data(title=message.text)
     await message.answer("Введите категорию видео:")
     await state.set_state(AdminStates.waiting_for_category)
 
 @dp.message(AdminStates.waiting_for_category)
 async def admin_get_category(message: types.Message, state: FSMContext):
-    await state.update_date(category=message.text)
+    await state.update_data(category=message.text)
     await message.answer("Теперь отправьте сам видеофайл:")
     await state.set_state(AdminStates.waiting_for_video)
 
@@ -133,7 +139,6 @@ async def admin_get_video_file(message: types.Message, state: FSMContext):
     await message.answer("✅ Видеотека успешно пополнена!", reply_markup=admin_kb())
     await state.clear()
 
-# Заглушка сервера для Render, чтобы сервис не падал по таймауту порта
 async def handle(request):
     return web.Response(text="Bot is running!")
 
@@ -148,7 +153,6 @@ async def web_server():
 
 async def main():
     logging.basicConfig(level=logging.INFO)
-    # Запускаем и веб-сервер для Render, и самого бота параллельно
     asyncio.create_task(web_server())
     await dp.start_polling(bot)
 
