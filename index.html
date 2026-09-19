@@ -15,8 +15,11 @@
             font-family: 'Inter', sans-serif;
         }
 
+        /* Анимированный градиентный фон */
         body {
-            background-color: #0b0d14;
+            background: linear-gradient(-45deg, #0b0d14, #121829, #1a0b1e, #0b1a1c);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
             color: #ffffff;
             min-height: 100vh;
             display: flex;
@@ -25,15 +28,28 @@
             padding: 30px 20px;
         }
 
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
         .container {
             width: 100%;
-            max-width: 750px; /* Удобная ширина для вертикального списка */
-            background: rgba(18, 21, 31, 0.85);
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 20px;
+            max-width: 750px;
+            background: rgba(18, 21, 31, 0.75);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
             padding: 30px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.7);
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         header {
@@ -42,45 +58,65 @@
         }
 
         header h1 {
-            font-size: 1.8rem;
+            font-size: 1.9rem;
             font-weight: 700;
-            background: linear-gradient(135deg, #00f2fe, #4facfe);
+            background: linear-gradient(135deg, #00f2fe, #4facfe, #00c6ff);
+            background-size: 200% auto;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             margin-bottom: 8px;
+            animation: shimmer 4s linear infinite;
+        }
+
+        @keyframes shimmer {
+            to { background-position: 200% center; }
         }
 
         header p {
-            color: #8a8a8a;
+            color: #94a3b8;
             font-size: 0.95rem;
         }
 
+        /* Баннер с переливающейся рамкой и анимацией */
         .bot-banner {
-            background: linear-gradient(135deg, rgba(0, 242, 254, 0.08), rgba(79, 172, 254, 0.08));
-            border: 1px solid rgba(0, 242, 254, 0.25);
-            border-radius: 14px;
-            padding: 18px;
+            background: linear-gradient(135deg, rgba(0, 242, 254, 0.05), rgba(79, 172, 254, 0.05));
+            border: 1px solid rgba(0, 242, 254, 0.3);
+            border-radius: 16px;
+            padding: 20px;
             text-align: center;
             margin-bottom: 25px;
+            transition: all 0.3s ease;
         }
 
+        .bot-banner:hover {
+            border-color: rgba(0, 242, 254, 0.6);
+            box-shadow: 0 0 20px rgba(0, 242, 254, 0.15);
+        }
+
+        /* Крутая анимированная кнопка */
         .bot-banner a {
             display: inline-block;
-            margin-top: 10px;
+            margin-top: 12px;
             background: linear-gradient(135deg, #00f2fe, #4facfe);
             color: #000;
-            padding: 9px 20px;
-            border-radius: 9px;
+            padding: 11px 24px;
+            border-radius: 12px;
             text-decoration: none;
             font-weight: 700;
-            font-size: 0.9rem;
-            transition: 0.2s;
-            box-shadow: 0 4px 15px rgba(0, 242, 254, 0.25);
+            font-size: 0.95rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 20px rgba(0, 242, 254, 0.4);
+            position: relative;
+            overflow: hidden;
         }
 
         .bot-banner a:hover {
-            opacity: 0.95;
-            transform: translateY(-2px);
+            transform: translateY(-3px) scale(1.03);
+            box-shadow: 0 6px 25px rgba(0, 242, 254, 0.6);
+        }
+
+        .bot-banner a:active {
+            transform: translateY(-1px) scale(1.01);
         }
 
         .section-title {
@@ -95,18 +131,33 @@
         .card-box {
             background: rgba(255, 255, 255, 0.02);
             border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: 14px;
-            padding: 18px;
+            border-radius: 16px;
+            padding: 20px;
             margin-bottom: 20px;
+            transition: border-color 0.3s ease;
+        }
+
+        .card-box:hover {
+            border-color: rgba(255, 255, 255, 0.12);
         }
 
         .video-list-container {
-            max-height: 350px;
+            max-height: 360px;
             overflow-y: auto;
-            border-radius: 10px;
-            background: rgba(0, 0, 0, 0.25);
+            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.3);
             border: 1px solid rgba(255, 255, 255, 0.04);
-            padding: 5px;
+            padding: 6px;
+        }
+
+        /* Эффекты при наведении на элементы списка видео */
+        .video-item, div[style*="background: rgba(255, 255, 255"] {
+            transition: all 0.2s ease !important;
+        }
+        
+        .video-item:hover, div[style*="background: rgba(255, 255, 255"]:hover {
+            background: rgba(255, 255, 255, 0.06) !important;
+            transform: translateX(4px);
         }
 
         /* Скроллбар */
@@ -117,17 +168,20 @@
             background: transparent;
         }
         ::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.2);
             border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.4);
         }
 
         footer {
             text-align: center;
             margin-top: 25px;
-            color: #555;
+            color: #64748b;
             font-size: 0.85rem;
             border-top: 1px solid rgba(255, 255, 255, 0.05);
-            padding-top: 15px;
+            padding-top: 18px;
         }
     </style>
 </head>
@@ -141,7 +195,7 @@
 
         <!-- Баннер перехода в бота -->
         <div class="bot-banner">
-            <p style="font-size: 0.9rem; color: #ccc;">Хотите смотреть видео в Telegram, искать по названию или скачивать?</p>
+            <p style="font-size: 0.95rem; color: #cbd5e1;">Хотите смотреть видео в Telegram, искать по названию или скачивать?</p>
             <a href="https://t.me/randomvideohub_bot" target="_blank"><i class="fa-brands fa-telegram"></i> Открыть Telegram-бот</a>
         </div>
 
