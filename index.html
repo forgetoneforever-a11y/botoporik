@@ -2,37 +2,328 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Загрузка видео для бота</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VideoHub Portal & Bot</title>
+    <!-- Подключаем шрифт и иконки -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #121212; color: #fff; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .card { background: #1e1e1e; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.6); width: 380px; }
-        h2 { margin-top: 0; color: #bb86fc; text-align: center; }
-        input, select, button { width: 100%; padding: 12px; margin-top: 15px; border-radius: 6px; border: 1px solid #333; background: #2d2d2d; color: #fff; box-sizing: border-box; }
-        input[type="file"] { padding: 8px; cursor: pointer; }
-        button { background: #bb86fc; color: #121212; border: none; cursor: pointer; font-weight: bold; transition: background 0.2s; }
-        button:hover { background: #9955e8; }
-        .links { text-align: center; margin-top: 15px; }
-        .links a { color: #bb86fc; text-decoration: none; font-size: 14px; }
-        .links a:hover { text-decoration: underline; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow-x: hidden;
+            padding: 20px;
+        }
+
+        /* Фоновые неоновые круги для атмосферы */
+        .bg-glow {
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: rgba(138, 43, 226, 0.3);
+            filter: blur(120px);
+            border-radius: 50%;
+            z-index: -1;
+            top: 10%;
+            left: 15%;
+        }
+
+        .bg-glow-2 {
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: rgba(0, 242, 254, 0.2);
+            filter: blur(120px);
+            border-radius: 50%;
+            z-index: -1;
+            bottom: 10%;
+            right: 15%;
+        }
+
+        /* Glassmorphism контейнер */
+        .container {
+            width: 100%;
+            max-width: 900px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            animation: fadeIn 1s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Шапка */
+        header {
+            text-align: center;
+            margin-bottom: 35px;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(90deg, #00f2fe, #4facfe);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            color: #b3b3b3;
+            font-size: 1rem;
+        }
+
+        /* Секции / Карточки */
+        .section-title {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: #00f2fe;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .grid-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        /* Кнопки в стиле Glass */
+        .glass-btn {
+            background: rgba(255, 255, 255, 0.07);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 15px 20px;
+            border-radius: 14px;
+            color: #fff;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .glass-btn i {
+            font-size: 1.3rem;
+            color: #00f2fe;
+        }
+
+        .glass-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: #00f2fe;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 242, 254, 0.3);
+        }
+
+        /* База данных / Список видео */
+        .database-box {
+            background: rgba(0, 0, 0, 0.25);
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            max-height: 250px;
+            overflow-y: auto;
+            margin-bottom: 30px;
+        }
+
+        .video-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            transition: background 0.2s;
+        }
+
+        .video-item:last-child {
+            border-bottom: none;
+        }
+
+        .video-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+
+        .video-info h4 {
+            font-size: 0.95rem;
+            margin-bottom: 3px;
+        }
+
+        .video-info span {
+            font-size: 0.75rem;
+            color: #8a8a8a;
+            background: rgba(255,255,255,0.1);
+            padding: 2px 8px;
+            border-radius: 6px;
+        }
+
+        .watch-link {
+            background: linear-gradient(135deg, #00f2fe, #4facfe);
+            color: #000;
+            padding: 8px 14px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 700;
+            transition: opacity 0.2s;
+        }
+
+        .watch-link:hover {
+            opacity: 0.85;
+        }
+
+        /* Футер */
+        footer {
+            text-align: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 20px;
+            color: #888;
+            font-size: 0.9rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0, 255, 128, 0.1);
+            color: #00ff80;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            border: 1px solid rgba(0, 255, 128, 0.2);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #00ff80;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #00ff80;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            50% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(0.95); opacity: 0.8; }
+        }
+
+        /* Скроллбар */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+        }
     </style>
 </head>
 <body>
-    <div class="card">
-        <h2>Загрузка видео</h2>
-        <form method="POST" enctype="multipart/form-data">
-            <input type="text" name="title" placeholder="Название видео" required>
-            <select name="category">
-                <option value="Юмор">Юмор</option>
-                <option value="Игры">Игры</option>
-                <option value="Музыка">Музыка</option>
-                <option value="Разное">Разное</option>
-            </select>
-            <input type="file" name="video" accept="video/*" required>
-            <button type="submit">Загрузить в базу</button>
-        </form>
-        <div class="links">
-            <a href="/admin" target="_blank">Перейти в веб-админку ➔</a>
+
+    <div class="bg-glow"></div>
+    <div class="bg-glow-2"></div>
+
+    <div class="container">
+        <!-- Шапка -->
+        <header>
+            <h1>VideoHub Portal</h1>
+            <p>Умная экосистема видеоматериалов и Telegram-бот управления</p>
+        </header>
+
+        <!-- Быстрые действия / Кнопки -->
+        <div class="section-title"><i class="fa-solid fa-compass"></i> Навигация и быстрый доступ</div>
+        <div class="grid-buttons">
+            <a href="https://t.me/randomvideohub_bot" target="_blank" class="glass-btn">
+                <i class="fa-brands fa-telegram"></i>
+                <div>
+                    <div>Открыть бота</div>
+                    <small style="color:#aaa; font-weight:300;">Запустить в Telegram</small>
+                </div>
+            </a>
+            <a href="https://t.me/randomvideohub_bot" target="_blank" class="glass-btn">
+                <i class="fa-solid fa-headset"></i>
+                <div>
+                    <div>Связаться с админом</div>
+                    <small style="color:#aaa; font-weight:300;">Поддержка / Репорты</small>
+                </div>
+            </a>
+            <a href="https://t.me/randomvideohub_bot" target="_blank" class="glass-btn">
+                <i class="fa-solid fa-random"></i>
+                <div>
+                    <div>Рандомный ролик</div>
+                    <small style="color:#aaa; font-weight:300;">Получить в один клик</small>
+                </div>
+            </a>
+            <a href="https://github.com" target="_blank" class="glass-btn">
+                <i class="fa-brands fa-github"></i>
+                <div>
+                    <div>GitHub Репозиторий</div>
+                    <small style="color:#aaa; font-weight:300;">Исходный код проекта</small>
+                </div>
+            </a>
         </div>
+
+        <!-- База данных видео -->
+        <div class="section-title"><i class="fa-solid fa-database"></i> Последние видео из базы данных</div>
+        <div class="database-box">
+            <div class="video-item">
+                <div class="video-info">
+                    <h4>Обзор игровой атмосферы #1</h4>
+                    <span>Игры / Геймплей</span>
+                </div>
+                <a href="https://t.me/randomvideohub_bot" target="_blank" class="watch-link">Смотреть в боте</a>
+            </div>
+            <div class="video-item">
+                <div class="video-info">
+                    <h4>Зомби Апокалипсис Трейлер</h4>
+                    <span>Инди / Шутер</span>
+                </div>
+                <a href="https://t.me/randomvideohub_bot" target="_blank" class="watch-link">Смотреть в боте</a>
+            </div>
+            <div class="video-item">
+                <div class="video-info">
+                    <h4>Нарезка лучших моментов сессии</h4>
+                    <span>Стримы</span>
+                </div>
+                <a href="https://t.me/randomvideohub_bot" target="_blank" class="watch-link">Смотреть в боте</a>
+            </div>
+        </div>
+
+        <!-- Футер -->
+        <footer>
+            <div class="status-badge">
+                <div class="status-dot"></div>
+                Система активна (Online)
+            </div>
+            <p>&copy; 2026 VideoHub System. Все права защищены.</p>
+        </footer>
     </div>
+
 </body>
 </html>
