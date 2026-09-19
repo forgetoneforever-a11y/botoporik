@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Загрузка видео для бота</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #121212; color: #fff; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: #1e1e1e; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.6); width: 380px; }
+        h2 { margin-top: 0; color: #bb86fc; text-align: center; }
+        input, select, button { width: 100%; padding: 12px; margin-top: 15px; border-radius: 6px; border: 1px solid #333; background: #2d2d2d; color: #fff; box-sizing: border-box; }
+        input[type="file"] { padding: 8px; cursor: pointer; }
+        button { background: #bb86fc; color: #121212; border: none; cursor: pointer; font-weight: bold; transition: background 0.2s; }
+        button:hover { background: #9955e8; }
+        .links { text-align: center; margin-top: 15px; }
+        .links a { color: #bb86fc; text-decoration: none; font-size: 14px; }
+        .links a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>Загрузка видео</h2>
+        <form method="POST" enctype="multipart/form-data">
+            <input type="text" name="title" placeholder="Название видео" required>
+            <select name="category">
+                <option value="Юмор">Юмор</option>
+                <option value="Игры">Игры</option>
+                <option value="Музыка">Музыка</option>
+                <option value="Разное">Разное</option>
+            </select>
+            <input type="file" name="video" accept="video/*" required>
+            <button type="submit">Загрузить в базу</button>
+        </form>
+        <div class="links">
+            <a href="/admin" target="_blank">Перейти в веб-админку ➔</a>
+        </div>
+    </div>
+</body>
+</html>
