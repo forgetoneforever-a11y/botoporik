@@ -34,7 +34,8 @@ def main_kb():
     return ReplyKeyboardMarkup(
         keyboard=[
             [KeyboardButton(text="🎲 Рандомное видео"), KeyboardButton(text="📂 Категории")],
-            [KeyboardButton(text="⚙️ Настройки"), KeyboardButton(text="🛠 Report")]
+            [KeyboardButton(text="⚙️ Настройки"), KeyboardButton(text="🛠 Report")],
+            [KeyboardButton(text="ℹ️ Помощь (/help)")],
         ],
         resize_keyboard=True
     )
@@ -43,6 +44,7 @@ def admin_kb():
     kb = [
         [KeyboardButton(text="📤 Загрузить видео"), KeyboardButton(text="📊 Статистика")],
         [KeyboardButton(text="📢 Сделать рассылку (/all)"), KeyboardButton(text="🗄 База данных (Список)")],
+        [KeyboardButton(text="🎲 Рандомное видео"), KeyboardButton(text="🛠 Report")],
         [KeyboardButton(text="◀️ В главное меню")]
     ]
     return ReplyKeyboardMarkup(keyboard=kb, resize_keyboard=True)
@@ -74,8 +76,9 @@ async def cmd_start(message: types.Message):
     else:
         await message.answer(text, reply_markup=main_kb())
 
-# Команда /help
+# Команда /help и кнопка помощи
 @dp.message(Command("help"))
+@dp.message(F.text == "ℹ️ Помощь (/help)")
 async def cmd_help(message: types.Message):
     help_text = (
         "📖 **Справка по командам бота:**\n\n"
@@ -170,11 +173,11 @@ async def toggle_repeat_callback(callback: types.CallbackQuery):
     await callback.message.edit_reply_markup(reply_markup=kb)
     await callback.answer("Настройки обновлены!")
 
-# Обратная связь / Report
+# Обратная связь / Report (Связь с администрацией)
 @dp.message(Command("report"))
 @dp.message(F.text == "🛠 Report")
 async def cmd_report_start(message: types.Message, state: FSMContext):
-    await message.answer("Опишите вашу проблему или ошибку, и администрация получит ваше сообщение:")
+    await message.answer("Опишите вашу проблему, предложение или ошибку, и администрация сразу получит ваше сообщение:")
     await state.set_state(ReportStates.waiting_for_report_text)
 
 @dp.message(ReportStates.waiting_for_report_text)
@@ -183,13 +186,25 @@ async def process_report_text(message: types.Message, state: FSMContext):
     user = message.from_user
     username = f"@{user.username}" if user.username else f"ID: {user.id}"
     
+    # Кнопка для ответа пользователю напрямую (если у него есть username) или через ID
+    reply_kb = None
+    if user.username:
+        reply_kb = InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="💬 Написать пользователю", url=f"https://t.me/{user.username}")]
+        ])
+
     for admin_id in ADMIN_IDS:
         try:
-            await bot.send_message(admin_id, f"🚨 **Новый репорт об ошибке!**\nОт: {username} ({user.full_name})\n\nТекст:\n{report_text}", parse_mode="Markdown")
+            await bot.send_message(
+                admin_id, 
+                f"🚨 **Новое обращение в поддержку (Report)!**\nОт: {username} ({user.full_name})\nID: `{user.id}`\n\nТекст:\n{report_text}", 
+                reply_markup=reply_kb,
+                parse_mode="Markdown"
+            )
         except Exception as e:
             logging.error(f"Не удалось отправить репорт админу {admin_id}: {e}")
             
-    await message.answer("✅ Ваше сообщение успешно отправлено администрации! Спасибо.")
+    await message.answer("✅ Ваше сообщение успешно отправлено администрации! Спасибо за обратную связь.")
     await state.clear()
 
 # Рассылка администратора через /all
