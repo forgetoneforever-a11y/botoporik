@@ -69,12 +69,18 @@ async def cmd_start(message: types.Message):
     if user_id not in user_settings:
         user_settings[user_id] = {"repeat": True, "shown_videos": set()}
 
-    text = f"{user_name}, добрый день! Прочтите нашу осведомительную информацию /help! Это очень важный процесс!"
+    site_url = "https://botoporik.onrender.com"
+    
+    text = (
+        f"{user_name}, добрый день! 👋\n\n"
+        f"Добро пожаловать в бот! Также вы можете просматривать всю базу видео на нашем веб-сайте: {site_url}\n\n"
+        f"Обязательно прочтите осведомительную информацию /help! Это очень важный процесс!"
+    )
     
     if user_id in ADMIN_IDS:
-        await message.answer(text, reply_markup=admin_kb())
+        await message.answer(text, reply_markup=admin_kb(), parse_mode="Markdown", disable_web_page_preview=True)
     else:
-        await message.answer(text, reply_markup=main_kb())
+        await message.answer(text, reply_markup=main_kb(), parse_mode="Markdown", disable_web_page_preview=True)
 
 @dp.message(Command("help"))
 @dp.message(F.text == "ℹ️ Помощь (/help)")
@@ -307,12 +313,17 @@ async def catch_other_text(message: types.Message):
     if user_id not in user_settings:
         user_settings[user_id] = {"repeat": True, "shown_videos": set()}
 
-    text = f"{user_name}, добрый день! Прочтите нашу осведомительную информацию /help! Это очень важный процесс!"
+    site_url = "https://botoporik.onrender.com"
+    text = (
+        f"{user_name}, добрый день! 👋\n\n"
+        f"Добро пожаловать в бот! Также вы можете просматривать всю базу видео на нашем веб-сайте: {site_url}\n\n"
+        f"Обязательно прочтите осведомительную информацию /help! Это очень важный процесс!"
+    )
     
     if user_id in ADMIN_IDS:
-        await message.answer(text, reply_markup=admin_kb())
+        await message.answer(text, reply_markup=admin_kb(), parse_mode="Markdown", disable_web_page_preview=True)
     else:
-        await message.answer(text, reply_markup=main_kb())
+        await message.answer(text, reply_markup=main_kb(), parse_mode="Markdown", disable_web_page_preview=True)
 
 
 # --- ВЕБ-СЕРВЕР И ДИНАМИЧЕСКАЯ ОТДАЧА САЙТА ---
