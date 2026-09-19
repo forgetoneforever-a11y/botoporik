@@ -103,7 +103,7 @@
 
         .grid-buttons {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
             gap: 15px;
             margin-bottom: 30px;
         }
@@ -136,61 +136,21 @@
             box-shadow: 0 8px 25px rgba(0, 242, 254, 0.3);
         }
 
-        /* База данных / Список видео */
+        /* Пустой блок базы данных */
         .database-box {
             background: rgba(0, 0, 0, 0.25);
             border-radius: 16px;
-            padding: 20px;
+            padding: 30px;
             border: 1px solid rgba(255, 255, 255, 0.05);
-            max-height: 250px;
-            overflow-y: auto;
+            text-align: center;
             margin-bottom: 30px;
-        }
-
-        .video-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 15px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            transition: background 0.2s;
-        }
-
-        .video-item:last-child {
-            border-bottom: none;
-        }
-
-        .video-item:hover {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 10px;
-        }
-
-        .video-info h4 {
-            font-size: 0.95rem;
-            margin-bottom: 3px;
-        }
-
-        .video-info span {
-            font-size: 0.75rem;
             color: #8a8a8a;
-            background: rgba(255,255,255,0.1);
-            padding: 2px 8px;
-            border-radius: 6px;
         }
 
-        .watch-link {
-            background: linear-gradient(135deg, #00f2fe, #4facfe);
-            color: #000;
-            padding: 8px 14px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-size: 0.85rem;
-            font-weight: 700;
-            transition: opacity 0.2s;
-        }
-
-        .watch-link:hover {
-            opacity: 0.85;
+        .database-box i {
+            font-size: 2rem;
+            color: #00f2fe;
+            margin-bottom: 10px;
         }
 
         /* Футер */
@@ -233,15 +193,6 @@
             50% { transform: scale(1.2); opacity: 1; }
             100% { transform: scale(0.95); opacity: 0.8; }
         }
-
-        /* Скроллбар */
-        ::-webkit-scrollbar {
-            width: 6px;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 10px;
-        }
     </style>
 </head>
 <body>
@@ -280,39 +231,13 @@
                     <small style="color:#aaa; font-weight:300;">Получить в один клик</small>
                 </div>
             </a>
-            <a href="https://github.com" target="_blank" class="glass-btn">
-                <i class="fa-brands fa-github"></i>
-                <div>
-                    <div>GitHub Репозиторий</div>
-                    <small style="color:#aaa; font-weight:300;">Исходный код проекта</small>
-                </div>
-            </a>
         </div>
 
-        <!-- База данных видео -->
-        <div class="section-title"><i class="fa-solid fa-database"></i> Последние видео из базы данных</div>
+        <!-- База данных видео (очищена) -->
+        <div class="section-title"><i class="fa-solid fa-database"></i> База данных видеоматериалов</div>
         <div class="database-box">
-            <div class="video-item">
-                <div class="video-info">
-                    <h4>Обзор игровой атмосферы #1</h4>
-                    <span>Игры / Геймплей</span>
-                </div>
-                <a href="https://t.me/randomvideohub_bot" target="_blank" class="watch-link">Смотреть в боте</a>
-            </div>
-            <div class="video-item">
-                <div class="video-info">
-                    <h4>Зомби Апокалипсис Трейлер</h4>
-                    <span>Инди / Шутер</span>
-                </div>
-                <a href="https://t.me/randomvideohub_bot" target="_blank" class="watch-link">Смотреть в боте</a>
-            </div>
-            <div class="video-item">
-                <div class="video-info">
-                    <h4>Нарезка лучших моментов сессии</h4>
-                    <span>Стримы</span>
-                </div>
-                <a href="https://t.me/randomvideohub_bot" target="_blank" class="watch-link">Смотреть в боте</a>
-            </div>
+            <i class="fa-solid fa-folder-open"></i>
+            <p>Здесь будут отображаться материалы из базы данных бота.<br>Загружайте видео через админ-панель в Telegram!</p>
         </div>
 
         <!-- Футер -->
