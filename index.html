@@ -16,24 +16,24 @@
         }
 
         body {
-            background: #0b0d14;
+            background-color: #0b0d14;
             color: #ffffff;
             min-height: 100vh;
             display: flex;
-            justify-content: center;
-            padding: 40px 20px;
+            flex-direction: column;
+            align-items: center;
+            padding: 30px 20px;
         }
 
         .container {
             width: 100%;
-            max-width: 900px; /* Сделали шире */
+            max-width: 750px; /* Удобная ширина для вертикального списка */
             background: rgba(18, 21, 31, 0.85);
             backdrop-filter: blur(16px);
             border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 24px;
-            padding: 35px;
+            border-radius: 20px;
+            padding: 30px;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
-            height: fit-content;
         }
 
         header {
@@ -42,7 +42,7 @@
         }
 
         header h1 {
-            font-size: 2rem;
+            font-size: 1.8rem;
             font-weight: 700;
             background: linear-gradient(135deg, #00f2fe, #4facfe);
             -webkit-background-clip: text;
@@ -52,30 +52,30 @@
 
         header p {
             color: #8a8a8a;
-            font-size: 1rem;
+            font-size: 0.95rem;
         }
 
         .bot-banner {
             background: linear-gradient(135deg, rgba(0, 242, 254, 0.08), rgba(79, 172, 254, 0.08));
             border: 1px solid rgba(0, 242, 254, 0.25);
-            border-radius: 16px;
-            padding: 20px;
+            border-radius: 14px;
+            padding: 18px;
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
         }
 
         .bot-banner a {
             display: inline-block;
-            margin-top: 12px;
+            margin-top: 10px;
             background: linear-gradient(135deg, #00f2fe, #4facfe);
             color: #000;
-            padding: 10px 22px;
-            border-radius: 10px;
+            padding: 9px 20px;
+            border-radius: 9px;
             text-decoration: none;
             font-weight: 700;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             transition: 0.2s;
-            box-shadow: 0 4px 15px rgba(0, 242, 254, 0.3);
+            box-shadow: 0 4px 15px rgba(0, 242, 254, 0.25);
         }
 
         .bot-banner a:hover {
@@ -84,57 +84,29 @@
         }
 
         .section-title {
-            font-size: 1.2rem;
-            margin-bottom: 15px;
+            font-size: 1.15rem;
+            margin-bottom: 12px;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
             font-weight: 600;
-        }
-
-        .content-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 25px;
-        }
-
-        @media (min-width: 768px) {
-            .content-grid {
-                grid-template-columns: 1fr 1fr; /* На ПК делим на 2 колонки: Топ и Общий список */
-            }
         }
 
         .card-box {
             background: rgba(255, 255, 255, 0.02);
             border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: 16px;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
+            border-radius: 14px;
+            padding: 18px;
+            margin-bottom: 20px;
         }
 
         .video-list-container {
-            max-height: 420px;
+            max-height: 350px;
             overflow-y: auto;
-            border-radius: 12px;
+            border-radius: 10px;
             background: rgba(0, 0, 0, 0.25);
             border: 1px solid rgba(255, 255, 255, 0.04);
             padding: 5px;
-        }
-
-        /* Стили элементов списка */
-        .video-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 15px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            transition: background 0.2s;
-            border-radius: 8px;
-        }
-
-        .video-item:hover {
-            background: rgba(255, 255, 255, 0.04);
         }
 
         /* Скроллбар */
@@ -151,11 +123,11 @@
 
         footer {
             text-align: center;
-            margin-top: 35px;
+            margin-top: 25px;
             color: #555;
             font-size: 0.85rem;
             border-top: 1px solid rgba(255, 255, 255, 0.05);
-            padding-top: 20px;
+            padding-top: 15px;
         }
     </style>
 </head>
@@ -169,33 +141,28 @@
 
         <!-- Баннер перехода в бота -->
         <div class="bot-banner">
-            <p style="font-size: 0.95rem; color: #ddd;">Хотите смотреть видео в Telegram, искать по названию или скачивать?</p>
+            <p style="font-size: 0.9rem; color: #ccc;">Хотите смотреть видео в Telegram, искать по названию или скачивать?</p>
             <a href="https://t.me/randomvideohub_bot" target="_blank"><i class="fa-brands fa-telegram"></i> Открыть Telegram-бот</a>
         </div>
 
-        <!-- Двухколоночная сетка для Топа и Общего списка -->
-        <div class="content-grid">
-            
-            <!-- БЛОК ТОП-5 ПОПУЛЯРНЫХ ВИДЕО -->
-            <div class="card-box">
-                <h3 class="section-title" style="color: #ff5e62;">
-                    <i class="fa-solid fa-fire"></i> Топ популярных
-                </h3>
-                <div class="video-list-container" style="flex-grow: 1;">
-                    <!-- TOP_VIDEOS_PLACEHOLDER -->
-                </div>
+        <!-- БЛОК ТОП-5 ПОПУЛЯРНЫХ ВИДЕО -->
+        <div class="card-box">
+            <h3 class="section-title" style="color: #ff5e62;">
+                <i class="fa-solid fa-fire"></i> Топ-5 популярных видео
+            </h3>
+            <div id="top-videos-list">
+                <!-- TOP_VIDEOS_PLACEHOLDER -->
             </div>
+        </div>
 
-            <!-- ОБЩИЙ СПИСОК ВИДЕО -->
-            <div class="card-box">
-                <h3 class="section-title" style="color: #00f2fe;">
-                    <i class="fa-solid fa-list"></i> Все видео в базе
-                </h3>
-                <div class="video-list-container" style="flex-grow: 1;">
-                    <!-- VIDEO_LIST_PLACEHOLDER -->
-                </div>
+        <!-- ОБЩИЙ СПИСОК ВИДЕО -->
+        <div class="card-box" style="margin-bottom: 0;">
+            <h3 class="section-title" style="color: #00f2fe;">
+                <i class="fa-solid fa-list"></i> Все видео в базе
+            </h3>
+            <div class="video-list-container">
+                <!-- VIDEO_LIST_PLACEHOLDER -->
             </div>
-
         </div>
 
         <footer>
