@@ -18,8 +18,9 @@ ADMIN_IDS = [int(admin_id_str)]
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
 
-# Хранилище настроек и списка пользователей для рассылки
+# Хранилище настроек и просмотров/статистики
 user_settings = {}
+video_views = {} # Словарь для подсчета просмотров в памяти или интеграция с БД: {video_id: count}
 
 class AdminStates(StatesGroup):
     waiting_for_title = State()
@@ -30,10 +31,14 @@ class AdminStates(StatesGroup):
 class ReportStates(StatesGroup):
     waiting_for_report_text = State()
 
+class SearchStates(StatesGroup):
+    waiting_for_query = State()
+
 def main_kb():
     return ReplyKeyboardMarkup(
         keyboard=[
-            [KeyboardButton(text="🎲 Рандомное видео"), KeyboardButton(text="📂 Категории")],
+            [KeyboardButton(text="🎲 Рандомное видео"), KeyboardButton(text="🔍 Поиск")],
+            [KeyboardButton(text="📂 Категории"), KeyboardButton(text="🔥 Топ видео")],
             [KeyboardButton(text="⚙️ Настройки"), KeyboardButton(text="🛠 Report")],
             [KeyboardButton(text="ℹ️ Помощь (/help)")],
         ],
@@ -43,9 +48,9 @@ def main_kb():
 def admin_kb():
     kb = [
         [KeyboardButton(text="📤 Загрузить видео"), KeyboardButton(text="📊 Статистика")],
+        [KeyboardButton(text="🎲 Рандомное видео"), KeyboardButton(text="🔍 Поиск")],
         [KeyboardButton(text="📢 Сделать рассылку (/all)"), KeyboardButton(text="🗄 База данных (Список)")],
-        [KeyboardButton(text="🎲 Рандомное видео"), KeyboardButton(text="🛠 Report")],
-        [KeyboardButton(text="◀️ В главное меню")]
+        [KeyboardButton(text="🛠 Report"), KeyboardButton(text="◀️ В главное меню")]
     ]
     return ReplyKeyboardMarkup(keyboard=kb, resize_keyboard=True)
 
@@ -73,8 +78,8 @@ async def cmd_start(message: types.Message):
     
     text = (
         f"{user_name}, добрый день! 👋\n\n"
-        f"Добро пожаловать в бот! Также вы можете просматривать всю базу видео на нашем веб-сайте: {site_url}\n\n"
-        f"Обязательно прочтите осведомительную информацию /help! Это очень важный процесс!"
+        f"Добро пожаловать в бот! Всю базу видео также можно смотреть на нашем сайте: {site_url}\n\n"
+        f"Используйте кнопки меню для поиска, рандома и управления!"
     )
     
     if user_id in ADMIN_IDS:
@@ -87,10 +92,11 @@ async def cmd_start(message: types.Message):
 async def cmd_help(message: types.Message):
     help_text = (
         "📖 **Справка по командам бота:**\n\n"
-        "🎲 `/random` — отправка рандомного видеоматериала\n"
-        "⚙️ `/setting` — настройки бота (повтор видео вкл/выкл)\n"
-        "🛠 `/report` — отправить ошибку администрации\n"
-        "ℹ️ `/help` — показать эту справку"
+        "🎲 `/random` — отправка рандомного видео\n"
+        "🔍 `/search` — поиск видео по названию или ID\n"
+        "🔥 Топ видео — самые популярные ролики\n"
+        "⚙️ `/setting` — настройки бота (повтор видео)\n"
+        "🛠 `/report` — отправить ошибку администрации"
     )
     await message.answer(help_text, parse_mode="Markdown")
 
@@ -121,7 +127,7 @@ async def send_random(message: types.Message):
         if not available_videos:
             settings["shown_videos"].clear()
             available_videos = all_videos
-            await message.answer("🔄 Все видео из базы уже были показаны! Список просмотренных сброшен.")
+            await message.answer("🔄 Все видео из базы уже были показаны! Список сброшен.")
     else:
         available_videos = all_videos
 
@@ -129,20 +135,139 @@ async def send_random(message: types.Message):
     video = random.choice(available_videos)
     vid_id, title, category, file_id, file_url = video
     
+    # Учитываем просмотр
+    video_views[vid_id] = video_views.get(vid_id, 0) + 1
+    
     settings["shown_videos"].add(vid_id)
-    caption = f"🎬 **{title}**\n📂 Категория: {category}\n🆔 ID: `{vid_id}`"
+    caption = f"🎬 **{title}**\n📂 Категория: {category}\n🆔 ID: `{vid_id}` | 👀 Просмотров: {video_views[vid_id]}"
+    
+    # Инлайн-кнопка жалобы под видео
+    kb = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="⚠️ Пожаловаться на видео", callback_data=f"complaint_{vid_id}")]
+    ])
     
     try:
         if file_id:
-            sent_video = await message.answer_video(video=file_id, caption=caption, parse_mode="Markdown")
+            sent_video = await message.answer_video(video=file_id, caption=caption, reply_markup=kb, parse_mode="Markdown")
         elif file_url:
             full_url = f"https://botoporik.onrender.com{file_url}"
-            sent_video = await message.answer_video(video=full_url, caption=caption, parse_mode="Markdown")
+            sent_video = await message.answer_video(video=full_url, caption=caption, reply_markup=kb, parse_mode="Markdown")
         
         notif_msg = await message.answer("⏳ Это видео автоматически удалится через 10 секунд.")
         asyncio.create_task(schedule_video_deletion(sent_video, notif_msg, 10))
     except Exception as e:
         await message.answer(f"Ошибка при отправке видео: {e}")
+
+
+# --- 🔍 ПОИСК ВИДЕО ---
+
+@dp.message(Command("search"))
+@dp.message(F.text == "🔍 Поиск")
+async def search_start(message: types.Message, state: FSMContext):
+    await message.answer("Введите название видео или его ID для поиска:")
+    await state.set_state(SearchStates.waiting_for_query)
+
+@dp.message(SearchStates.waiting_for_query)
+async def search_process(message: types.Message, state: FSMContext):
+    query = message.text.lower().strip()
+    all_videos = get_all_videos()
+    
+    found = []
+    for v in all_videos:
+        vid_id, title, category, file_id, file_url = v
+        if query in title.lower() or query == str(vid_id):
+            found.append(v)
+            
+    if not found:
+        await message.answer("❌ По вашему запросу ничего не найдено. Попробуйте другой запрос или перейдите в Категории.")
+        await state.clear()
+        return
+
+    text = f"🔍 **Результаты поиска по запросу «{message.text}»:**\n\n"
+    kb = []
+    for v in found[:10]: # Ограничим выдачу 10 роликами
+        text += f"• ID: `{v[0]}` | **{v[1]}** ({v[2]})\n"
+        kb.append([InlineKeyboardButton(text=f"▶️ Смотреть: {v[1][:20]}", callback_data=f"playvid_{v[0]}")])
+        
+    await message.answer(text, reply_markup=InlineKeyboardMarkup(inline_keyboard=kb), parse_mode="Markdown")
+    await state.clear()
+
+@dp.callback_query(F.data.startswith("playvid_"))
+async def play_video_by_callback(callback: types.CallbackQuery):
+    vid_id = int(callback.data.split("_")[1])
+    video = get_video_by_id(vid_id)
+    
+    if not video:
+        await callback.answer("Видео не найдено или было удалено!", show_alert=True)
+        return
+        
+    vid_id, title, category, file_id, file_url = video
+    video_views[vid_id] = video_views.get(vid_id, 0) + 1
+    caption = f"🎬 **{title}**\n📂 Категория: {category}\n🆔 ID: `{vid_id}` | 👀 Просмотров: {video_views[vid_id]}"
+    
+    kb = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="⚠️ Пожаловаться на видео", callback_data=f"complaint_{vid_id}")]
+    ])
+    
+    try:
+        if file_id:
+            await callback.message.answer_video(video=file_id, caption=caption, reply_markup=kb, parse_mode="Markdown")
+        elif file_url:
+            full_url = f"https://botoporik.onrender.com{file_url}"
+            await callback.message.answer_video(video=full_url, caption=caption, reply_markup=kb, parse_mode="Markdown")
+        await callback.answer()
+    except Exception as e:
+        await callback.answer(f"Ошибка: {e}", show_alert=True)
+
+
+# --- 🔥 ТОП ВИДЕО ---
+
+@dp.message(F.text == "🔥 Топ видео")
+async def show_top_videos(message: types.Message):
+    all_videos = get_all_videos()
+    if not all_videos:
+        await message.answer("База данных пока пуста.")
+        return
+        
+    # Сортируем по количеству просмотров (убывание)
+    sorted_videos = sorted(all_videos, key=lambda v: video_views.get(v[0], 0), reverse=True)
+    
+    text = "🔥 **Топ-10 самых популярных видео:**\n\n"
+    kb = []
+    for i, v in enumerate(sorted_videos[:10], 1):
+        views = video_views.get(v[0], 0)
+        text += f"{i}. **{v[1]}** (Категория: {v[2]}) — 👀 {views} просм.\n"
+        kb.append([InlineKeyboardButton(text=f"▶️ [{i}] {v[1][:25]}", callback_data=f"playvid_{v[0]}")])
+        
+    await message.answer(text, reply_markup=InlineKeyboardMarkup(inline_keyboard=kb), parse_mode="Markdown")
+
+
+# --- ⚠️ СИСТЕМА ЖАЛОБ НА ВИДЕО ---
+
+@dp.callback_query(F.data.startswith("complaint_"))
+async def process_video_complaint(callback: types.CallbackQuery):
+    vid_id = callback.data.split("_")[1]
+    user = callback.from_user
+    username = f"@{user.username}" if user.username else f"ID: {user.id}"
+    
+    # Отправляем уведомление администраторам
+    for admin_id in ADMIN_IDS:
+        try:
+            await bot.send_message(
+                admin_id,
+                f"⚠️ **Жалоба на видеоролик!**\n\n"
+                f"🆔 ID видео: `{vid_id}`\n"
+                f"👤 Пользователь: {username} ({user.full_name})\n"
+                f"🔗 ID пользователя: `{user.id}`",
+                parse_mode="Markdown"
+            )
+        except Exception as e:
+            logging.error(f"Не удалось отправить жалобу админу {admin_id}: {e}")
+            
+    await callback.answer("✅ Жалоба успешно отправлена администрации на рассмотрение!", show_alert=True)
+
+
+# --- НАСТРОЙКИ И ПРОЧЕЕ ---
 
 @dp.message(Command("setting"))
 @dp.message(F.text == "⚙️ Настройки")
@@ -257,10 +382,12 @@ async def category_videos(callback: types.CallbackQuery):
         return
 
     text = f"📹 Видео в категории **{cat_name}**:\n\n"
+    kb = []
     for v in videos:
         text += f"• ID: `{v[0]}` | **{v[1]}**\n"
+        kb.append([InlineKeyboardButton(text=f"▶️ {v[1][:25]}", callback_data=f"playvid_{v[0]}")])
     
-    await callback.message.answer(text, parse_mode="Markdown")
+    await callback.message.answer(text, reply_markup=InlineKeyboardMarkup(inline_keyboard=kb), parse_mode="Markdown")
     await callback.answer()
 
 @dp.message(F.text == "📊 Статистика")
@@ -305,26 +432,6 @@ async def admin_get_video_file(message: types.Message, state: FSMContext):
     await message.answer("✅ Видеотека успешно пополнена!", reply_markup=admin_kb())
     await state.clear()
 
-@dp.message(F.text & ~F.text.startswith("/"))
-async def catch_other_text(message: types.Message):
-    user_id = message.from_user.id
-    user_name = message.from_user.first_name or "Пользователь"
-    
-    if user_id not in user_settings:
-        user_settings[user_id] = {"repeat": True, "shown_videos": set()}
-
-    site_url = "https://botoporik.onrender.com"
-    text = (
-        f"{user_name}, добрый день! 👋\n\n"
-        f"Добро пожаловать в бот! Также вы можете просматривать всю базу видео на нашем веб-сайте: {site_url}\n\n"
-        f"Обязательно прочтите осведомительную информацию /help! Это очень важный процесс!"
-    )
-    
-    if user_id in ADMIN_IDS:
-        await message.answer(text, reply_markup=admin_kb(), parse_mode="Markdown", disable_web_page_preview=True)
-    else:
-        await message.answer(text, reply_markup=main_kb(), parse_mode="Markdown", disable_web_page_preview=True)
-
 
 # --- ВЕБ-СЕРВЕР И ДИНАМИЧЕСКАЯ ОТДАЧА САЙТА ---
 
@@ -346,11 +453,12 @@ async def handle(request):
         else:
             for v in videos:
                 vid_id, title, category, file_id, file_url = v
+                views = video_views.get(vid_id, 0)
                 videos_html += f"""
-                <div class="video-item" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); transition: background 0.2s;">
+                <div class="video-item" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; border-bottom: 1px solid rgba(255, 255, 255, 0.05);">
                     <div class="video-info">
                         <h4 style="font-size: 0.95rem; margin-bottom: 3px; color: #fff;">{title}</h4>
-                        <span style="font-size: 0.75rem; color: #8a8a8a; background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 6px;">Категория: {category} | ID: {vid_id}</span>
+                        <span style="font-size: 0.75rem; color: #8a8a8a; background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 6px;">Категория: {category} | ID: {vid_id} | Просмотров: {views}</span>
                     </div>
                     <a href="https://t.me/randomvideohub_bot" target="_blank" class="watch-link" style="background: linear-gradient(135deg, #00f2fe, #4facfe); color: #000; padding: 8px 14px; border-radius: 8px; text-decoration: none; font-size: 0.85rem; font-weight: 700;">Смотреть в боте</a>
                 </div>
