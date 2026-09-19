@@ -186,7 +186,6 @@ async def process_report_text(message: types.Message, state: FSMContext):
     user = message.from_user
     username = f"@{user.username}" if user.username else f"ID: {user.id}"
     
-    # Кнопка для ответа пользователю напрямую (если у него есть username) или через ID
     reply_kb = None
     if user.username:
         reply_kb = InlineKeyboardMarkup(inline_keyboard=[
@@ -329,10 +328,13 @@ async def catch_other_text(message: types.Message):
         await message.answer(text, reply_markup=main_kb())
 
 
-# --- ВЕБ-СЕРВЕР И ЗАПУСК ---
+# --- ВЕБ-СЕРВЕР И ОТДАЧА HTML САЙТА ---
 
 async def handle(request):
-    return web.Response(text="Bot is running!")
+    try:
+        return web.FileResponse('./index.html')
+    except Exception:
+        return web.Response(text="Bot is running! (index.html not found)")
 
 async def web_server():
     app = web.Application()
