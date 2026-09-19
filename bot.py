@@ -17,16 +17,23 @@ ADMIN_IDS = [int(admin_id_str)]
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
 
+# Словарь для хранения настроек пользователей (например, повторение видео: True/False)
+# user_settings[user_id] = {"repeat": True, "shown_videos": set()}
+user_settings = {}
+
 class AdminStates(StatesGroup):
     waiting_for_title = State()
     waiting_for_category = State()
     waiting_for_video = State()
 
+class ReportStates(StatesGroup):
+    waiting_for_report_text = State()
+
 def main_kb():
-    # Кнопка "ℹ️ О боте" полностью удалена
     return ReplyKeyboardMarkup(
         keyboard=[
-            [KeyboardButton(text="🎲 Рандомное видео"), KeyboardButton(text="📂 Категории")]
+            [KeyboardButton(text="🎲 Рандомное видео"), KeyboardButton(text="📂 Категории")],
+            [KeyboardButton(text="⚙️ Настройки"), KeyboardButton(text="🛠 Report")]
         ],
         resize_keyboard=True
     )
@@ -38,26 +45,72 @@ def admin_kb():
     ]
     return ReplyKeyboardMarkup(keyboard=kb, resize_keyboard=True)
 
+# Обработка /start или любого первого сообщения
 @dp.message(Command("start"))
-async def cmd_start(message: types.Message):
+@dp.message(F.text & ~F.text.startswith("/"))
+async def cmd_start_or_text(message: types.Message):
+    user_name = message.from_user.first_name or "Пользователь"
+    
+    # Инициализируем настройки пользователя, если их еще нет
+    if message.from_user.id not in user_settings:
+        user_settings[message.from_user.id] = {"repeat": True, "shown_videos": set()}
+
     if message.from_user.id in ADMIN_IDS:
-        await message.answer("Привет, администратор! Вам доступна админ-панель.", reply_markup=admin_kb())
+        await message.answer(f"{user_name}, добрый день! Прочтите нашу осведомительную информацию /help! Это очень важный процесс!", reply_markup=admin_kb())
     else:
-        await message.answer("Привет! Выбирай действие:", reply_markup=main_kb())
+        await message.answer(f"{user_name}, добрый день! Прочтите нашу осведомительную информацию /help! Это очень важный процесс!", reply_markup=main_kb())
+
+# Команда /help
+@dp.message(Command("help"))
+@dp.message(F.text == "ℹ️ Help")
+async def cmd_help(message: types.Message):
+    help_text = (
+        "📖 **Справка по командам бота:**\n\n"
+        "🎲 `/random` — отправка рандомного видеоматериала\n"
+        "⚙️ `/setting` — настройки бота (включение/выключение повтора видео)\n"
+        "🛠 `/report` — отправить ошибку администрации\n"
+        "ℹ️ `/help` — показать эту справку"
+    )
+    await message.answer(help_text, parse_mode="Markdown")
 
 @dp.message(F.text == "◀️ В главное меню")
 async def back_to_main(message: types.Message):
     await message.answer("Главное меню:", reply_markup=main_kb())
 
-@dp.message(F.text == "🎲 Рандомное видео")
+# Команда /random с учетом настроек повторения
 @dp.message(Command("random"))
+@dp.message(F.text == "🎲 Рандомное видео")
 async def send_random(message: types.Message):
-    video = get_random_video()
-    if not video:
+    user_id = message.from_user.id
+    if user_id not in user_settings:
+        user_settings[user_id] = {"repeat": True, "shown_videos": set()}
+    
+    settings = user_settings[user_id]
+    all_videos = get_all_videos()
+    
+    if not all_videos:
         await message.answer("В базе пока нет видеороликов!")
         return
     
+    # Если повтор выключен, фильтруем уже показанные видео
+    if not settings["repeat"]:
+        available_videos = [v for v in all_videos if v[0] not in settings["shown_videos"]]
+        
+        # Если все видео уже показаны, сбрасываем список
+        if not available_videos:
+            settings["shown_videos"].clear()
+            available_videos = all_videos
+            await message.answer("🔄 Все видео из базы уже были показаны! Список просмотренных сброшен.")
+    else:
+        available_videos = all_videos
+
+    import random
+    video = random.choice(available_videos)
     vid_id, title, category, file_id, file_url = video
+    
+    # Запоминаем, что видео показано
+    settings["shown_videos"].add(vid_id)
+    
     caption = f"🎬 **{title}**\n📂 Категория: {category}\n🆔 ID: `{vid_id}`"
     
     if file_id:
@@ -65,6 +118,62 @@ async def send_random(message: types.Message):
     elif file_url:
         full_url = f"https://botoporik.onrender.com{file_url}"
         await message.answer_video(video=full_url, caption=caption, parse_mode="Markdown")
+
+# Команда /setting (Настройки)
+@dp.message(Command("setting"))
+@dp.message(F.text == "⚙️ Настройки")
+async def cmd_settings(message: types.Message):
+    user_id = message.from_user.id
+    if user_id not in user_settings:
+        user_settings[user_id] = {"repeat": True, "shown_videos": set()}
+    
+    repeat_status = "Вкл ✅" if user_settings[user_id]["repeat"] else "Выкл ❌"
+    
+    kb = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text=f"Повтор видео: {repeat_status}", callback_data="toggle_repeat")]
+    ])
+    await message.answer("⚙️ **Настройки бота:**\n\nВы можете включить или выключить повторение уже просмотренных видео при выборе рандома.", reply_markup=kb, parse_mode="Markdown")
+
+@dp.callback_query(F.data == "toggle_repeat")
+async def toggle_repeat_callback(callback: types.CallbackQuery):
+    user_id = callback.from_user.id
+    if user_id not in user_settings:
+        user_settings[user_id] = {"repeat": True, "shown_videos": set()}
+    
+    # Переключаем статус
+    user_settings[user_id]["repeat"] = not user_settings[user_id]["repeat"]
+    user_settings[user_id]["shown_videos"].clear()  # Сбрасываем историю при переключении
+    
+    repeat_status = "Вкл ✅" if user_settings[user_id]["repeat"] else "Выкл ❌"
+    
+    kb = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text=f"Повтор видео: {repeat_status}", callback_data="toggle_repeat")]
+    ])
+    await callback.message.edit_reply_markup(reply_markup=kb)
+    await callback.answer("Настройки обновлены!")
+
+# Команда /report (Сообщить об ошибке)
+@dp.message(Command("report"))
+@dp.message(F.text == "🛠 Report")
+async def cmd_report_start(message: types.Message, state: FSMContext):
+    await message.answer("Опишите вашу проблему или ошибку, и администрация получит ваше сообщение:")
+    await state.set_state(ReportStates.waiting_for_report_text)
+
+@dp.message(ReportStates.waiting_for_report_text)
+async def process_report_text(message: types.Message, state: FSMContext):
+    report_text = message.text
+    user = message.from_user
+    username = f"@{user.username}" if user.username else f"ID: {user.id}"
+    
+    # Пересылаем репорт администраторам
+    for admin_id in ADMIN_IDS:
+        try:
+            await bot.send_message(admin_id, f"🚨 **Новый репорт об ошибке!**\nОт: {username} ({user.full_name})\n\nТекст:\n{report_text}", parse_mode="Markdown")
+        except Exception as e:
+            logging.error(f"Не удалось отправить репорт админу {admin_id}: {e}")
+            
+    await message.answer("✅ Ваше сообщение успешно отправлено администрации! Спасибо.")
+    await state.clear()
 
 @dp.message(F.text == "📂 Категории")
 async def show_categories(message: types.Message):
@@ -112,7 +221,7 @@ async def admin_database(message: types.Message):
         await message.answer("База данных пуста.")
         return
     for v in videos[:10]:
-        await message.answer(f"ID: `{v[0]}`\nНазвание: **{v[1]}**\nКатегория: {v[2]}", parse_mode="Markdown", parse_mode_fallback=True)
+        await message.answer(f"ID: `{v[0]}`\nНазвание: **{v[1]}**\nКатегория: {v[2]}", parse_mode="Markdown")
 
 @dp.message(F.text == "📤 Загрузить видео")
 async def admin_upload_start(message: types.Message, state: FSMContext):
